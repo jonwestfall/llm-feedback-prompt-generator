@@ -59,7 +59,7 @@ npm run build
 ```
 ## 📦 Deployment
 
-This app works great when deployed as a PWA. You can try [Vercel](https://vercel.com/) or [Netlify](https://netlify.com/) for one-click deployment.
+This app works great when deployed as a PWA. A live demo can be found on [Netlify](https://llmfeedbackpromptgenerator.netlify.app)
 
 ---
 
