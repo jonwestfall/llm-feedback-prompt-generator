@@ -23,13 +23,13 @@ Created by [Jon Westfall](mailto:jon@jonwestfall.com) and ChatGPT.
 ## 📸 Screenshots
 
 ### Feedback Options Setup
-![Feedback Options](./options.png)
+![Feedback Options](./Options.png)
 
 ### Student Feedback Table
-![Student Grid](./students.png)
+![Student Grid](./Students.png)
 
 ### Example Prompt Output
-![Example Output](./example.png)
+![Example Output](./Example.png)
 
 ---
 
@@ -38,7 +38,7 @@ Created by [Jon Westfall](mailto:jon@jonwestfall.com) and ChatGPT.
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/llm-feedback-prompts.git
+git clone https://github.com/jonwestfall/llm-feedback-prompt-generator.git
 cd llm-feedback-prompts
 ```
 
