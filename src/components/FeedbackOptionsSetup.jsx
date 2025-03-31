@@ -13,7 +13,9 @@ export default function FeedbackOptionSetup() {
   const [viewTable, setViewTable] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
+  const [studentKey, setStudentKey] = useState(0); // forces rerender of student table
 
+  const labelRef = useRef(null);
   const descriptionRef = useRef(null);
 
   useEffect(() => {
@@ -24,8 +26,6 @@ export default function FeedbackOptionSetup() {
     localStorage.setItem('customPrompt', customPrompt);
   }, [customPrompt]);
 
-  const labelRef = useRef(null);
-
   const addFeedback = () => {
     if (!label.trim()) return;
     const newFeedback = { id: Date.now(), label, description };
@@ -34,13 +34,13 @@ export default function FeedbackOptionSetup() {
     setDescription('');
     labelRef.current?.focus();
   };
-  
 
   const removeFeedback = (id) => {
     setFeedbacks(feedbacks.filter(f => f.id !== id));
   };
 
   const handleSave = () => {
+    setStudentKey(prev => prev + 1);
     setViewTable(true);
   };
 
@@ -79,6 +79,29 @@ export default function FeedbackOptionSetup() {
     reader.readAsText(file);
   };
 
+  const importStudentCSV = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const lines = event.target.result.split('\n').filter(Boolean).map(name => name.trim());
+      const students = lines.map((name, i) => ({
+        id: Date.now() + i,
+        name,
+        grade: '',
+        selected: {}
+      }));
+
+      const action = window.confirm('Replace current students? Click "Cancel" to add to the list.');
+      const saved = JSON.parse(localStorage.getItem('students') || '[]');
+      const updated = action ? students : [...saved, ...students];
+      localStorage.setItem('students', JSON.stringify(updated));
+      alert(`Imported ${students.length} student(s).`);
+    };
+    reader.readAsText(file);
+  };
+
   const exportStudentsCSV = () => {
     const savedStudents = localStorage.getItem('students');
     if (!savedStudents) {
@@ -96,7 +119,6 @@ export default function FeedbackOptionSetup() {
         ...feedbacks.map(f => student.selected?.[f.id] ? 'Yes' : 'No'),
         `"${prompt.replace(/"/g, '""')}"`
       ];
-      
     });
     const csv = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -123,7 +145,11 @@ export default function FeedbackOptionSetup() {
         <button onClick={() => setViewTable(false)} style={{ marginBottom: '1rem', padding: '0.5rem 1rem' }}>
           Back to Feedback Setup
         </button>
-        <StudentFeedbackTable feedbackOptions={feedbacks} customPrompt={customPrompt} allowAutoAdd={true} />
+        <StudentFeedbackTable
+          key={studentKey}
+          feedbackOptions={feedbacks}
+          customPrompt={customPrompt}
+        />
       </div>
     );
   }
@@ -142,7 +168,7 @@ export default function FeedbackOptionSetup() {
       {showAbout && (
         <div style={{ border: '1px solid #ccc', backgroundColor: darkMode ? '#222' : '#eee', padding: '1rem', marginBottom: '1rem' }}>
           <h3>About</h3>
-          <p>v0.1, This tool was developed by Jon Westfall (jon@jonwestfall.com) and ChatGPT to streamline student feedback using LLMs.</p>
+          <p>This tool was developed by Jon Westfall (jon@jonwestfall.com) and ChatGPT to streamline student feedback using LLMs.</p>
           <button onClick={() => setShowAbout(false)} style={{ marginTop: '0.5rem', padding: '0.25rem 0.5rem' }}>Close</button>
         </div>
       )}
@@ -209,6 +235,10 @@ export default function FeedbackOptionSetup() {
         <label style={{ padding: '0.5rem 1rem', backgroundColor: '#ffc107', color: '#000', borderRadius: '6px', cursor: 'pointer' }}>
           Import Feedback CSV
           <input type="file" accept=".csv" onChange={importFeedbackCSV} style={{ display: 'none' }} />
+        </label>
+        <label style={{ padding: '0.5rem 1rem', backgroundColor: '#20c997', color: '#fff', borderRadius: '6px', cursor: 'pointer' }}>
+          Import Student Names
+          <input type="file" accept=".csv" onChange={importStudentCSV} style={{ display: 'none' }} />
         </label>
       </div>
     </div>

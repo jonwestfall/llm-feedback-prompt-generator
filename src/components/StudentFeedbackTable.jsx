@@ -85,6 +85,7 @@ export default function StudentFeedbackTable({ feedbackOptions, customPrompt }) 
               <td style={{ padding: '0.5rem', borderBottom: '1px solid #eee' }}>
                 <input
                   type="text"
+                  id={`student-name-${student.id}`}
                   value={student.name}
                   ref={idx === students.length - 1 ? lastInputRef : null}
                   onChange={(e) => updateName(student.id, e.target.value)}
@@ -98,12 +99,25 @@ export default function StudentFeedbackTable({ feedbackOptions, customPrompt }) 
                 />
               </td>
               <td style={{ padding: '0.5rem', borderBottom: '1px solid #eee' }}>
-                <input
-                  type="text"
-                  value={student.grade || ''}
-                  onChange={(e) => updateGrade(student.id, e.target.value)}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
-                />
+              <input
+              type="text"
+              value={student.grade || ''}
+              onChange={(e) => updateGrade(student.id, e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  const index = students.findIndex(s => s.id === student.id);
+                  if (index < students.length - 1) {
+                    const nextInput = document.querySelector(`#student-name-${students[index + 1].id}`);
+                    nextInput?.focus();
+                  } else {
+                    addStudentRow();
+                  }
+                }
+              }}
+              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
+            />
+
               </td>
               {feedbackOptions.map(fb => (
                 <td key={fb.id} style={{ textAlign: 'center', borderBottom: '1px solid #eee' }}>
