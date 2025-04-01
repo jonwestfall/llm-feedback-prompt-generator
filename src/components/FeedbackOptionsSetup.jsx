@@ -85,23 +85,32 @@ const importFeedbackCSV = (e) => {
     let importedPrompt = '';
     let feedbackRows = lines;
 
-    // Check if first line is the custom prompt and extract it
-if (lines[0].startsWith('"# Custom Prompt:') || lines[0].startsWith('# Custom Prompt:')) {
-  const match = lines[0].match(/# Custom Prompt:\s*(.*)/);
-  if (match) {
-    const rawPrompt = match[1].trim();
-    const cleanedPrompt = rawPrompt.replace(/^"/, '').replace(/"$/, '').trim();
-    setCustomPrompt(cleanedPrompt);
-  }
-  feedbackRows = lines.slice(1);
-}
+    // Extract custom prompt from first line if present
+    if (lines[0].startsWith('"# Custom Prompt:') || lines[0].startsWith('# Custom Prompt:')) {
+      const match = lines[0].match(/# Custom Prompt:\s*(.*)/);
+      if (match) {
+        const rawPrompt = match[1].trim();
+        const cleanedPrompt = rawPrompt.replace(/^"/, '').replace(/"$/, '').trim();
+        setCustomPrompt(cleanedPrompt);
+      }
+      feedbackRows = lines.slice(1);
+    }
 
-    const stripQuotes = (str) => str.replace(/^"(.*)"$/, '$1').trim();
+    // Proper CSV parser for quoted lines
+    const parseCSVLine = (line) => {
+      const pattern = /(?:\"([^\"]*(?:\"\"[^\"]*)*)\")|([^,]+)/g;
+      const result = [];
+      let match;
+      while ((match = pattern.exec(line)) !== null) {
+        result.push(match[1] !== undefined
+          ? match[1].replace(/""/g, '"')
+          : match[2].trim());
+      }
+      return result;
+    };
 
     const imported = feedbackRows.map((line, i) => {
-      const [labelRaw, descRaw = ''] = line.split(',');
-      const label = stripQuotes(labelRaw);
-      const description = stripQuotes(descRaw);
+      const [label, description = ''] = parseCSVLine(line);
       return { id: Date.now() + i, label, description };
     }).filter(f => f.label);
 
