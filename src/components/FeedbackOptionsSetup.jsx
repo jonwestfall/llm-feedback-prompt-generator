@@ -83,11 +83,11 @@ const importFeedbackCSV = (e) => {
     let feedbackRows = lines;
 
     // Check if first line is the custom prompt and extract it
-    if (lines[0].startsWith('"# Custom Prompt:') || lines[0].startsWith('# Custom Prompt:')) {
+if (lines[0].startsWith('"# Custom Prompt:') || lines[0].startsWith('# Custom Prompt:')) {
   const match = lines[0].match(/# Custom Prompt:\s*(.*)/);
   if (match) {
     const rawPrompt = match[1].trim();
-    const cleanedPrompt = rawPrompt.replace(/^"(.*)"$/, '$1').trim();  // strip outer quotes if present
+    const cleanedPrompt = rawPrompt.replace(/^"/, '').replace(/"$/, '').trim();
     setCustomPrompt(cleanedPrompt);
   }
   feedbackRows = lines.slice(1);
