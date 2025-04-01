@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Papa from 'papaparse';
 import StudentFeedbackTable from './StudentFeedbackTable';
 
 export default function FeedbackOptionSetup() {
@@ -80,45 +81,40 @@ const importFeedbackCSV = (e) => {
 
   const reader = new FileReader();
   reader.onload = (event) => {
-    const lines = event.target.result.trim().split('\n').filter(Boolean);
+    const rawText = event.target.result.trim();
 
-    let importedPrompt = '';
-    let feedbackRows = lines;
+    // Split the file into lines
+    const lines = rawText.split('\n');
+    let customPrompt = '';
+    let csvLines = lines;
 
-    // Extract custom prompt from first line if present
-    if (lines[0].startsWith('"# Custom Prompt:') || lines[0].startsWith('# Custom Prompt:')) {
-      const match = lines[0].match(/# Custom Prompt:\s*(.*)/);
-      if (match) {
-        const rawPrompt = match[1].trim();
-        const cleanedPrompt = rawPrompt.replace(/^"/, '').replace(/"$/, '').trim();
-        setCustomPrompt(cleanedPrompt);
-      }
-      feedbackRows = lines.slice(1);
+    // Detect and extract custom prompt from the first line
+    if (lines[0].startsWith('# Custom Prompt:')) {
+      customPrompt = lines[0].replace('# Custom Prompt:', '').trim().replace(/^"|"$/g, '');
+      csvLines = lines.slice(1); // remove prompt line
+      setCustomPrompt(customPrompt);
     }
 
-    // Proper CSV parser for quoted lines
-    const parseCSVLine = (line) => {
-      const pattern = /(?:\"([^\"]*(?:\"\"[^\"]*)*)\")|([^,]+)/g;
-      const result = [];
-      let match;
-      while ((match = pattern.exec(line)) !== null) {
-        result.push(match[1] !== undefined
-          ? match[1].replace(/""/g, '"')
-          : match[2].trim());
-      }
-      return result;
-    };
+    // Join the remaining lines as proper CSV string
+    const csvString = csvLines.join('\n');
 
-    const imported = feedbackRows.map((line, i) => {
-      const [label, description = ''] = parseCSVLine(line);
-      return { id: Date.now() + i, label, description };
-    }).filter(f => f.label);
+    const parsed = Papa.parse(csvString, {
+  skipEmptyLines: true
+});
 
-    setFeedbacks(imported);
+const feedbacks = parsed.data.map((row, i) => {
+  const label = (row[0] || '').trim();
+  const description = row.slice(1).join(',').trim(); // 👈 recombine extra columns
+  return { id: Date.now() + i, label, description };
+}).filter(f => f.label);
+
+
+    setFeedbacks(feedbacks);
   };
 
   reader.readAsText(file);
 };
+
 
   const importStudentCSV = (e) => {
     const file = e.target.files[0];
