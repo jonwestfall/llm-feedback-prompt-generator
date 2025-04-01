@@ -76,9 +76,11 @@ const importFeedbackCSV = (e) => {
   const reader = new FileReader();
   reader.onload = (event) => {
     const lines = event.target.result.trim().split('\n').filter(Boolean);
+
     let importedPrompt = '';
     let feedbackRows = lines;
 
+    // Check if first line is a custom prompt
     if (lines[0].startsWith('# Custom Prompt:')) {
       importedPrompt = lines[0].replace('# Custom Prompt:', '').trim();
       feedbackRows = lines.slice(1);
@@ -86,12 +88,20 @@ const importFeedbackCSV = (e) => {
 
     const imported = feedbackRows.map((line, i) => {
       const [label, description] = line.split(',');
-      return { id: Date.now() + i, label: label.trim(), description: (description || '').trim() };
+      return {
+        id: Date.now() + i,
+        label: label.trim(),
+        description: (description || '').trim()
+      };
     }).filter(f => f.label);
 
-    if (importedPrompt) setCustomPrompt(importedPrompt);
+    if (importedPrompt) {
+      setCustomPrompt(importedPrompt);
+    }
+
     setFeedbacks(imported);
   };
+
   reader.readAsText(file);
 };
 
