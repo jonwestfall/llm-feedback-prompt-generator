@@ -53,31 +53,47 @@ export default function FeedbackOptionSetup() {
   };
 
   const exportFeedbackCSV = () => {
-    const csvContent = 'data:text/csv;charset=utf-8,' + feedbacks.map(f => `${f.label},${f.description}`).join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', 'feedback_options.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  const rows = [
+    [`# Custom Prompt: ${customPrompt}`],
+    ...feedbacks.map(f => [f.label, f.description])
+  ];
+  const csvContent =
+    'data:text/csv;charset=utf-8,' +
+    rows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', 'feedback_options.csv');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
-  const importFeedbackCSV = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+const importFeedbackCSV = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const lines = event.target.result.split('\n');
-      const imported = lines.map((line, i) => {
-        const [label, description] = line.split(',');
-        return { id: Date.now() + i, label: label.trim(), description: (description || '').trim() };
-      }).filter(f => f.label);
-      setFeedbacks(imported);
-    };
-    reader.readAsText(file);
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const lines = event.target.result.trim().split('\n').filter(Boolean);
+    let importedPrompt = '';
+    let feedbackRows = lines;
+
+    if (lines[0].startsWith('# Custom Prompt:')) {
+      importedPrompt = lines[0].replace('# Custom Prompt:', '').trim();
+      feedbackRows = lines.slice(1);
+    }
+
+    const imported = feedbackRows.map((line, i) => {
+      const [label, description] = line.split(',');
+      return { id: Date.now() + i, label: label.trim(), description: (description || '').trim() };
+    }).filter(f => f.label);
+
+    if (importedPrompt) setCustomPrompt(importedPrompt);
+    setFeedbacks(imported);
   };
+  reader.readAsText(file);
+};
 
   const importStudentCSV = (e) => {
     const file = e.target.files[0];
