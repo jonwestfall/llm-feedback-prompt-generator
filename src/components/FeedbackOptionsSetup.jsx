@@ -55,21 +55,24 @@ export default function FeedbackOptionSetup() {
   };
 
   const exportFeedbackCSV = () => {
-  const rows = [
-    [`# Custom Prompt: ${customPrompt}`],
-    ...feedbacks.map(f => [f.label, f.description])
-  ];
-  const csvContent =
-    'data:text/csv;charset=utf-8,' +
-    rows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
-  const encodedUri = encodeURI(csvContent);
+  let csv = `# Custom Prompt: ${customPrompt.trim()}\n`;
+
+  feedbacks.forEach(fb => {
+    const label = fb.label.replace(/"/g, '""');
+    const description = fb.description.replace(/"/g, '""');
+    csv += `${label},${description}\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
-  link.setAttribute('href', encodedUri);
+  link.setAttribute('href', url);
   link.setAttribute('download', 'feedback_options.csv');
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 };
+
 
 const importFeedbackCSV = (e) => {
   const file = e.target.files[0];
