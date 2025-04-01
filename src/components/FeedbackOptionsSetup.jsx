@@ -23,8 +23,10 @@ export default function FeedbackOptionSetup() {
   }, [feedbacks]);
 
   useEffect(() => {
+  if (customPrompt !== null) {
     localStorage.setItem('customPrompt', customPrompt);
-  }, [customPrompt]);
+  }
+}, [customPrompt]);
 
   const addFeedback = () => {
     if (!label.trim()) return;
