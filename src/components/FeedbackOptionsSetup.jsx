@@ -80,19 +80,19 @@ const importFeedbackCSV = (e) => {
     let importedPrompt = '';
     let feedbackRows = lines;
 
-    // Check if first line is a custom prompt
+    // Check if the first line contains a custom prompt
     if (lines[0].startsWith('# Custom Prompt:')) {
       importedPrompt = lines[0].replace('# Custom Prompt:', '').trim();
       feedbackRows = lines.slice(1);
     }
 
+    const stripQuotes = (str) => str.replace(/^"(.*)"$/, '$1').trim();
+
     const imported = feedbackRows.map((line, i) => {
-      const [label, description] = line.split(',');
-      return {
-        id: Date.now() + i,
-        label: label.trim(),
-        description: (description || '').trim()
-      };
+      const [labelRaw, descRaw = ''] = line.split(',');
+      const label = stripQuotes(labelRaw);
+      const description = stripQuotes(descRaw);
+      return { id: Date.now() + i, label, description };
     }).filter(f => f.label);
 
     if (importedPrompt) {
